@@ -5,7 +5,7 @@ package org.rosuda.REngine;
  This class defines basic accessor methods (<tt>as</tt><i>XXX</i>), type check methods (<tt>is</tt><i>XXX</i>), gives access to attributes ({@link #getAttribute}, {@link #hasAttribute}) as well as several convenience methods. If a given method is not applicable to a particular type, it will throw the {@link REXPMismatchException} exception.
  <p>This root class will throw on any accessor call and returns <code>false</code> for all type methods. This allows subclasses to override accessor and type methods selectively.
  */
-public class REXP {
+public class REXP implements java.io.Serializable {
 	/** attribute list. This attribute should never be accessed directly. */
 	protected REXPList attr;
 
