@@ -14,6 +14,12 @@
     <junit-version>4.11</junit-version>
   </properties>
   
+  <scm>
+    <url>https://github.com/cemmersb/REngine</url>
+    <connection>scm:git:git://github.com/cemmersb/REngine.git</connection>
+    <developerConnection>scm:git:git@github.com:cemmersb/REngine.git</developerConnection>
+  </scm>
+  
   <dependencyManagement>
     <dependencies>
       <dependency>
