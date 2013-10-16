@@ -8,6 +8,26 @@
   <packaging>pom</packaging>
   
   <name>REngine</name>
+
+  <description>
+    REngine provides Java client libraries to connect to Rserve and access the
+    broad set of statistical functions provided by the R language and environment.
+  </description>
+  
+  <developers>
+    <developer>
+      <id>s-u</id>
+      <name>Simon Urbanek</name>
+    </developer>
+    <developer>
+      <id>romainfrancois</id>
+      <name>Romain François</name>
+    </developer>
+    <developer>
+      <id>cemmersb</id>
+      <name>Christoph Emmersberger</name>
+    </developer>
+  </developers>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
