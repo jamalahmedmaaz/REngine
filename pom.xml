@@ -14,6 +14,14 @@
     <junit-version>4.11</junit-version>
   </properties>
   
+  <licenses>
+    <license>
+      <name>GNU  Lesser General Public License, Version 2.1</name>
+      <url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
   <scm>
     <url>https://github.com/cemmersb/REngine</url>
     <connection>scm:git:git://github.com/cemmersb/REngine.git</connection>
