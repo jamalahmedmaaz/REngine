@@ -14,7 +14,7 @@ package org.rosuda.rengine;
  * <code>false</code> for all type methods. This allows subclasses to override
  * accessor and type methods selectively.
  */
-public class REXP {
+public class REXP implements java.io.Serializable {
 
   /**
    * attribute list. This attribute should never be accessed directly.
