@@ -225,6 +225,18 @@ public class RserveTest {
     assertTrue(rexp.asDouble() == 1.2);
   }
   
+  @Test 
+  public void dataFramePassThroughTest() throws REngineException, REXPMismatchException {
+    REXP dataFrame = connection.parseAndEval("{data(iris); iris}");
+    connection.assign("df", dataFrame);
+    
+    REXP rexp = connection.eval("identical(df, iris)");
+    assertNotNull(rexp);
+    assertTrue(rexp.isLogical());
+    assertTrue(rexp.length() == 1);
+    assertTrue(((REXPLogical)rexp).isTRUE()[0]);
+  }
+  
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
