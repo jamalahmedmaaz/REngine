@@ -9,12 +9,16 @@ import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
+import org.rosuda.rengine.REXP;
+import org.rosuda.rengine.REXPDouble;
 import org.rosuda.rengine.REXPMismatchException;
 import org.rosuda.rengine.REXPString;
 import org.rosuda.rengine.REngine;
+import org.rosuda.rengine.REngineException;
 import org.rosuda.rengine.RList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +93,40 @@ public class RserveTest {
     }
   }
 
+  @Test
+  public void doubleVectorNaNaNSupportTest() throws REngineException, REXPMismatchException {
+    final double r_na = REXPDouble.NA;
+    double x[] = {1.0, 0.5, r_na, Double.NaN, 3.5};
+    connection.assign("x", x);
+    
+    // Check of Na/NaN can be assigned and retrieved
+    final String nas = connection.eval("paste(capture.output(print(x)),collapse='\\n')").asString();
+    assertNotNull(nas);
+    assertEquals("[1] 1.0 0.5  NA NaN 3.5", nas);
+    
+    // Check of Na/NaN can be pulled
+    final REXP rexp = connection.eval("c(2.2, NA_real_, NaN)");
+    assertNotNull(rexp);
+    assertTrue(rexp.isNumeric());
+    assertFalse(rexp.isInteger());
+    
+    // Check if NA/NaN can be pulled
+    final boolean nal[] = rexp.isNA();
+    assertNotNull(nal);
+    assertTrue(nal.length == 3);
+    assertFalse(nal[0]);
+    assertTrue(nal[1]);
+    assertFalse(nal[2]);
+    
+    // Check of NA/NAN can be pulled
+    x = rexp.asDoubles();
+    assertNotNull(x);
+    assertTrue(x.length == 3);
+    assertTrue(Double.isNaN(x[2]));
+    assertFalse(REXPDouble.isNA(x[2]));
+    assertTrue(REXPDouble.isNA(x[1])); 
+  }
+  
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
