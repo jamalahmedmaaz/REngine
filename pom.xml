@@ -41,10 +41,14 @@
   </developers>
   
   <properties>
+    <!-- configure source encoding -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+    <!-- configure dependency versions -->
     <junit-version>4.11</junit-version>
     <maven-javadoc-version>2.9.1</maven-javadoc-version>
     <maven-source-version>2.2.1</maven-source-version>
+    <slf4j-version>1.7.5</slf4j-version>
   </properties>
   
   <licenses>
@@ -64,10 +68,21 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${slf4j-version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.rosuda.rengine</groupId>
         <artifactId>REngine</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <!-- Test dependencies -->
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
