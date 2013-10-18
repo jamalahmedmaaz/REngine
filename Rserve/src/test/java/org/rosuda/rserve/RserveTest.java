@@ -254,32 +254,58 @@ public class RserveTest {
     factor = connection.parseAndEval("f");
     assertNotNull(factor);
     assertTrue(factor.isFactor());
-    
+
     factor = connection.parseAndEval("as.factor(c(1,'a','b',1,'b'))");
     assertNotNull(factor);
     assertTrue(factor.isFactor());
   }
-  
+
   @Test
   public void lowessTest() throws RserveException, REXPMismatchException, REngineException {
     final double x[] = connection.eval("rnorm(100)").asDoubles();
     final double y[] = connection.eval("rnorm(100)").asDoubles();
     connection.assign("x", x);
     connection.assign("y", y);
-    
+
     final RList list = connection.parseAndEval("lowess(x,y)").asList();
     assertNotNull(list);
     assertEquals(x.length, list.at("x").asDoubles().length);
-    assertEquals(y.length, list.at("y").asDoubles().length);    
+    assertEquals(y.length, list.at("y").asDoubles().length);
   }
-  
+
   @Test
   public void multiLineExpressionTest() throws RserveException, REXPMismatchException {
     final REXP rexp = connection.eval("{ a=1:10\nb=11:20\nmean(b-a) }\n");
     assertNotNull(rexp);
     assertEquals(10, rexp.asInteger());
   }
-  
+
+  @Test
+  public void matrixTest() throws REngineException, REXPMismatchException {
+    final int m = 100;
+    final int n = 100;
+    // Initialize matrix and assign to R environment
+    final double[] matrix = new double[m * n];
+    int counter = 0;
+    while (counter < m * n) {
+      matrix[counter++] = counter / 100;
+    }
+    connection.assign("m1", matrix);
+    connection.voidEval("m1 <- matrix(m1," + m + "," + n + ")");
+    // Initialize second matrix and assign to R environment
+    double[][] matrix2 = new double[m][n];
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        matrix2[i][j] = matrix[i + j * m];
+      }
+    }
+    connection.assign("m2", REXP.createDoubleMatrix(matrix2));
+    // Evaluate result
+    final REXP rexp = connection.eval("identical(m1 ,m2)");
+    assertNotNull(rexp);
+    assertTrue(rexp.asInteger() == 1);
+  }
+
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
