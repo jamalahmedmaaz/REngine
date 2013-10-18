@@ -3,6 +3,7 @@ package org.rosuda.rserve;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
@@ -316,6 +317,39 @@ public class RserveTest {
     String[] result = connection.eval("unserialize(r)()").asStrings();
     assertNotNull(result);
     assertEquals("r", result[0]);
+  }
+  
+  @Test
+  public void vectorNAHandlingTest() throws REngineException, REXPMismatchException {
+    engine.assign("s", new String[]{"foo", "", null, "NA"});
+    final int nas[] = engine.parseAndEval("is.na(s)").asIntegers();
+    assertNotNull(nas);
+    assertEquals(4, nas.length);
+    assertEquals(REXPLogical.FALSE, nas[0]);
+    assertEquals(REXPLogical.FALSE, nas[1]);
+    assertEquals(REXPLogical.TRUE, nas[2]);
+    assertEquals(REXPLogical.FALSE, nas[3]);
+    
+    final String[] result = engine.parseAndEval("c('foo', '', NA, 'NA')").asStrings();
+    assertNotNull(result);
+    assertEquals(4, result.length);
+    assertNotNull(result[0]);
+    assertNotNull(result[1]);
+    assertEquals("", result[1]);
+    assertNull(result[2]);
+    assertNotNull(result[3]);
+    
+    final REXP rexp = engine.parseAndEval("identical(s, c('foo', '', NA, 'NA'))");
+    assertNotNull(rexp);
+    assertEquals(REXPLogical.TRUE, rexp.asInteger());
+    
+    boolean na[] = engine.parseAndEval("s").isNA();
+    assertNotNull(na);
+    assertEquals(4, na.length);
+    assertFalse(na[0]);
+    assertFalse(na[1]);
+    assertTrue(na[2]);
+    assertFalse(na[3]);
   }
   
   @After
