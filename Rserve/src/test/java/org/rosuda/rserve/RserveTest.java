@@ -208,6 +208,23 @@ public class RserveTest {
     assertTrue(result3[2]);
   }
   
+  @Test
+  public void s3ObjectFunctionalityTest() throws REngineException, REXPMismatchException {
+    final REXPInteger rexpInteger = new REXPInteger(new int[]{0, 1, 2, 3});
+    final REXPDouble rexpDouble = new REXPDouble(new double[]{0.5, 1.2, 2.3, 3.0});
+    
+    final RList list = new RList();
+    list.put("a", rexpInteger);
+    list.put("b", rexpDouble);
+    
+    connection.assign("z", REXP.createDataFrame(list));
+    
+    final REXP rexp = connection.parseAndEval("z[2,2]");
+    assertNotNull(rexp);
+    assertTrue(rexp.length() == 1);
+    assertTrue(rexp.asDouble() == 1.2);
+  }
+  
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
