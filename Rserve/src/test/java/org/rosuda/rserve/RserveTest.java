@@ -273,6 +273,13 @@ public class RserveTest {
     assertEquals(y.length, list.at("y").asDoubles().length);    
   }
   
+  @Test
+  public void multiLineExpressionTest() throws RserveException, REXPMismatchException {
+    REXP rexp = connection.eval("{ a=1:10\nb=11:20\nmean(b-a) }\n");
+    assertNotNull(rexp);
+    assertEquals(10, rexp.asInteger());
+  }
+  
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
