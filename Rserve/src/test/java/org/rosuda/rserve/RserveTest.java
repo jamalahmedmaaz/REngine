@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.rosuda.rserve;
 
 import org.junit.After;
@@ -18,6 +13,7 @@ import org.rosuda.rengine.REXPDouble;
 import org.rosuda.rengine.REXPGenericVector;
 import org.rosuda.rengine.REXPInteger;
 import org.rosuda.rengine.REXPList;
+import org.rosuda.rengine.REXPLogical;
 import org.rosuda.rengine.REXPMismatchException;
 import org.rosuda.rengine.REXPString;
 import org.rosuda.rengine.REngine;
@@ -132,25 +128,26 @@ public class RserveTest {
 
   @Test
   public void assignListsAndVectorsTest() throws RserveException, REXPMismatchException, REngineException {
+    // Initialize REXP container
     final REXPInteger rexpInteger = new REXPInteger(new int[]{0, 1, 2, 3});
     final REXPDouble rexpDouble = new REXPDouble(new double[]{0.5, 1.2, 2.3, 3.0});
-    
+    // Assign REXP container to RList
     final RList list = new RList();
     list.put("a", rexpInteger);
     list.put("b", rexpDouble);
-    
+    // Variables to assign List, Vector and DataFrame
     final String[] vars = {"x", "y", "z"};
     // Assign all three varaiables
     connection.assign(vars[0], new REXPList(list));
     connection.assign(vars[1], new REXPGenericVector(list));
     connection.assign(vars[2], REXP.createDataFrame(list));
-    // Evaluate result
+    // Evaluate result for all assignments
     for (String var : vars) {
       checkListAndVectorsRexpResult(var, list, rexpInteger, rexpDouble);
     }
   }
 
-  private void checkListAndVectorsRexpResult(String var, RList list, 
+  private void checkListAndVectorsRexpResult(String var, RList list,
           REXPInteger rexpInteger, REXPDouble rexpDouble) throws REXPMismatchException, REngineException {
     REXP rexp = connection.parseAndEval("x");
     assertNotNull(rexp);
@@ -166,10 +163,51 @@ public class RserveTest {
         assertEquals(rexpInteger.asIntegers()[i], a.asIntegers()[i]);
       }
     } catch (ClassCastException exception) {
+      LOGGER.error(exception.getMessage());
       fail("Could not cast object to the required type.");
     }
   }
 
+  @Test
+  public void logicalsSupportTest() throws RserveException, REngineException, REXPMismatchException {
+    final REXPLogical rexpLogical = new REXPLogical(new boolean[]{true, false, true});
+    connection.assign("b", rexpLogical);
+    
+    REXP rexp = connection.parseAndEval("b");
+    assertNotNull(rexp);
+    assertTrue(rexp.isLogical());
+    assertEquals(rexpLogical.length(), rexp.length());
+    try {
+      final boolean[] result = ((REXPLogical) rexp).isTRUE();
+      assertTrue(result[0]);
+      assertFalse(result[1]);
+      assertTrue(result[2]);
+    } catch (ClassCastException exception) {
+      LOGGER.error(exception.getMessage());
+      fail("Could not cast REXP to REPLogical.");
+    }
+    
+    rexp = connection.parseAndEval("c(TRUE,FALSE,NA)");
+    assertNotNull(rexp);
+    assertTrue(rexp.isLogical());
+    assertEquals(rexpLogical.length(), rexp.length());
+    // Check result values of rexp.isTRUE()
+    boolean result1[] = ((REXPLogical) rexp).isTRUE();
+    assertTrue(result1[0]);
+    assertFalse(result1[1]);
+    assertFalse(result1[2]);
+    // Check result values of rexp.isFALSE()
+    boolean result2[] = ((REXPLogical) rexp).isFALSE();
+    assertFalse(result2[0]);
+    assertTrue(result2[1]);
+    assertFalse(result2[2]);
+    // Check result values of rexp.isNA()
+    boolean result3[] = ((REXPLogical) rexp).isNA(); 
+    assertFalse(result3[0]);
+    assertFalse(result3[1]);
+    assertTrue(result3[2]);
+  }
+  
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
