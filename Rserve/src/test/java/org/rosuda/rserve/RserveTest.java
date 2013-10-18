@@ -312,13 +312,13 @@ public class RserveTest {
   public void rawVectorSerializationTest() throws RserveException, REXPMismatchException {
     final byte[] bytes = connection.eval("serialize(ls, NULL, ascii=FALSE)").asBytes();
     assertNotNull(bytes);
-    
+
     connection.assign("r", new REXPRaw(bytes));
     String[] result = connection.eval("unserialize(r)()").asStrings();
     assertNotNull(result);
     assertEquals("r", result[0]);
   }
-  
+
   @Test
   public void vectorNAHandlingTest() throws REngineException, REXPMismatchException {
     engine.assign("s", new String[]{"foo", "", null, "NA"});
@@ -329,7 +329,7 @@ public class RserveTest {
     assertEquals(REXPLogical.FALSE, nas[1]);
     assertEquals(REXPLogical.TRUE, nas[2]);
     assertEquals(REXPLogical.FALSE, nas[3]);
-    
+
     final String[] result = engine.parseAndEval("c('foo', '', NA, 'NA')").asStrings();
     assertNotNull(result);
     assertEquals(4, result.length);
@@ -338,11 +338,11 @@ public class RserveTest {
     assertEquals("", result[1]);
     assertNull(result[2]);
     assertNotNull(result[3]);
-    
+
     final REXP rexp = engine.parseAndEval("identical(s, c('foo', '', NA, 'NA'))");
     assertNotNull(rexp);
     assertEquals(REXPLogical.TRUE, rexp.asInteger());
-    
+
     boolean na[] = engine.parseAndEval("s").isNA();
     assertNotNull(na);
     assertEquals(4, na.length);
@@ -351,23 +351,41 @@ public class RserveTest {
     assertTrue(na[2]);
     assertFalse(na[3]);
   }
-  
+
   @Test
   public void encodingSupportTest() throws RserveException, REngineException, REXPMismatchException {
     // hiragana (literally, in hiragana ;))
     final String testString = "ひらがな";
     connection.setStringEncoding("utf8");
     connection.assign("s", testString);
-    
+
     final REXP rexp = connection.parseAndEval("nchar(s)");
     assertNotNull(rexp);
     assertTrue(rexp.isInteger());
     assertEquals(4, rexp.asInteger());
   }
-  
+
+//  @Test
+//  public void controlCommandTest() throws RserveException, REXPMismatchException {
+//    final String key = "rn" + Math.random();
+//    connection.serverEval("xXx<-'" + key + "'");
+//
+//    // Reconnect
+//    connection.close();
+//    connection = new RConnection();
+//
+//    final REXP rexp = connection.eval("xXx");
+//    assertNotNull(rexp);
+//    assertTrue(rexp.isString());
+//    assertEquals(1, rexp.length());
+//    assertEquals(key, rexp.asString());
+//  }
+
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
+    connection.close();
+    engine.close();
   }
 
 }
