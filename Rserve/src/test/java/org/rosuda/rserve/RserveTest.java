@@ -259,7 +259,20 @@ public class RserveTest {
     assertNotNull(factor);
     assertTrue(factor.isFactor());
   }
-
+  
+  @Test
+  public void lowessTest() throws RserveException, REXPMismatchException, REngineException {
+    final double x[] = connection.eval("rnorm(100)").asDoubles();
+    final double y[] = connection.eval("rnorm(100)").asDoubles();
+    connection.assign("x", x);
+    connection.assign("y", y);
+    
+    final RList list = connection.parseAndEval("lowess(x,y)").asList();
+    assertNotNull(list);
+    assertEquals(x.length, list.at("x").asDoubles().length);
+    assertEquals(y.length, list.at("y").asDoubles().length);    
+  }
+  
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
