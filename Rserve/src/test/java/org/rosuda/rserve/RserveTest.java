@@ -275,7 +275,7 @@ public class RserveTest {
   
   @Test
   public void multiLineExpressionTest() throws RserveException, REXPMismatchException {
-    REXP rexp = connection.eval("{ a=1:10\nb=11:20\nmean(b-a) }\n");
+    final REXP rexp = connection.eval("{ a=1:10\nb=11:20\nmean(b-a) }\n");
     assertNotNull(rexp);
     assertEquals(10, rexp.asInteger());
   }
