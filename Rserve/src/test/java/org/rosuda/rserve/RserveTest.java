@@ -5,7 +5,6 @@
  */
 package org.rosuda.rserve;
 
-import java.util.Vector;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
