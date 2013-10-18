@@ -43,6 +43,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit-version>4.11</junit-version>
+    <maven-javadoc-version>2.9.1</maven-javadoc-version>
+    <maven-source-version>2.2.1</maven-source-version>
   </properties>
   
   <licenses>
@@ -86,9 +88,24 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
+        <version>${maven-source-version}</version>
         <executions>
           <execution>
+            <id>attach-source</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- attach javadoc to release -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven-javadoc-version}</version>
+        <executions>
+          <execution>
+            <id>attach-javadoc</id>
             <goals>
               <goal>jar</goal>
             </goals>
