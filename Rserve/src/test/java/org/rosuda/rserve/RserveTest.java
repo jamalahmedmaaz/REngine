@@ -352,6 +352,19 @@ public class RserveTest {
     assertFalse(na[3]);
   }
   
+  @Test
+  public void encodingSupportTest() throws RserveException, REngineException, REXPMismatchException {
+    // hiragana (literally, in hiragana ;))
+    final String testString = "ひらがな";
+    connection.setStringEncoding("utf8");
+    connection.assign("s", testString);
+    
+    final REXP rexp = connection.parseAndEval("nchar(s)");
+    assertNotNull(rexp);
+    assertTrue(rexp.isInteger());
+    assertEquals(4, rexp.asInteger());
+  }
+  
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
