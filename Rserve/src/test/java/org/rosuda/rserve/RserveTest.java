@@ -16,6 +16,7 @@ import org.rosuda.rengine.REXPInteger;
 import org.rosuda.rengine.REXPList;
 import org.rosuda.rengine.REXPLogical;
 import org.rosuda.rengine.REXPMismatchException;
+import org.rosuda.rengine.REXPRaw;
 import org.rosuda.rengine.REXPString;
 import org.rosuda.rengine.REngine;
 import org.rosuda.rengine.REngineException;
@@ -306,6 +307,17 @@ public class RserveTest {
     assertTrue(rexp.asInteger() == 1);
   }
 
+  @Test
+  public void rawVectorSerializationTest() throws RserveException, REXPMismatchException {
+    final byte[] bytes = connection.eval("serialize(ls, NULL, ascii=FALSE)").asBytes();
+    assertNotNull(bytes);
+    
+    connection.assign("r", new REXPRaw(bytes));
+    String[] result = connection.eval("unserialize(r)()").asStrings();
+    assertNotNull(result);
+    assertEquals("r", result[0]);
+  }
+  
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
