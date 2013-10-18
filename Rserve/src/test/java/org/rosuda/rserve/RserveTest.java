@@ -5,6 +5,7 @@
  */
 package org.rosuda.rserve;
 
+import java.util.Vector;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -15,6 +16,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.rosuda.rengine.REXP;
 import org.rosuda.rengine.REXPDouble;
+import org.rosuda.rengine.REXPGenericVector;
+import org.rosuda.rengine.REXPInteger;
+import org.rosuda.rengine.REXPList;
 import org.rosuda.rengine.REXPMismatchException;
 import org.rosuda.rengine.REXPString;
 import org.rosuda.rengine.REngine;
@@ -79,7 +83,7 @@ public class RserveTest {
           String[] numbers = rexpString.asStrings();
           for (String string : numbers) {
             assertNotNull(string);
-            assertTrue(11 <= Integer.parseInt(string) 
+            assertTrue(11 <= Integer.parseInt(string)
                     && Integer.parseInt(string) <= 20);
           }
         } else {
@@ -98,18 +102,18 @@ public class RserveTest {
     final double r_na = REXPDouble.NA;
     double x[] = {1.0, 0.5, r_na, Double.NaN, 3.5};
     connection.assign("x", x);
-    
+
     // Check of Na/NaN can be assigned and retrieved
     final String nas = connection.eval("paste(capture.output(print(x)),collapse='\\n')").asString();
     assertNotNull(nas);
     assertEquals("[1] 1.0 0.5  NA NaN 3.5", nas);
-    
+
     // Check of Na/NaN can be pulled
     final REXP rexp = connection.eval("c(2.2, NA_real_, NaN)");
     assertNotNull(rexp);
     assertTrue(rexp.isNumeric());
     assertFalse(rexp.isInteger());
-    
+
     // Check if NA/NaN can be pulled
     final boolean nal[] = rexp.isNA();
     assertNotNull(nal);
@@ -117,16 +121,56 @@ public class RserveTest {
     assertFalse(nal[0]);
     assertTrue(nal[1]);
     assertFalse(nal[2]);
-    
+
     // Check of NA/NAN can be pulled
     x = rexp.asDoubles();
     assertNotNull(x);
     assertTrue(x.length == 3);
     assertTrue(Double.isNaN(x[2]));
     assertFalse(REXPDouble.isNA(x[2]));
-    assertTrue(REXPDouble.isNA(x[1])); 
+    assertTrue(REXPDouble.isNA(x[1]));
   }
-  
+
+  @Test
+  public void assignListsAndVectorsTest() throws RserveException, REXPMismatchException, REngineException {
+    final REXPInteger rexpInteger = new REXPInteger(new int[]{0, 1, 2, 3});
+    final REXPDouble rexpDouble = new REXPDouble(new double[]{0.5, 1.2, 2.3, 3.0});
+    
+    final RList list = new RList();
+    list.put("a", rexpInteger);
+    list.put("b", rexpDouble);
+    
+    final String[] vars = {"x", "y", "z"};
+    // Assign all three varaiables
+    connection.assign(vars[0], new REXPList(list));
+    connection.assign(vars[1], new REXPGenericVector(list));
+    connection.assign(vars[2], REXP.createDataFrame(list));
+    // Evaluate result
+    for (String var : vars) {
+      checkListAndVectorsRexpResult(var, list, rexpInteger, rexpDouble);
+    }
+  }
+
+  private void checkListAndVectorsRexpResult(String var, RList list, 
+          REXPInteger rexpInteger, REXPDouble rexpDouble) throws REXPMismatchException, REngineException {
+    REXP rexp = connection.parseAndEval("x");
+    assertNotNull(rexp);
+    assertEquals(list.names, rexp.asList().names);
+    try {
+      REXPInteger a = (REXPInteger) rexp.asList().get("a");
+      REXPDouble b = (REXPDouble) rexp.asList().get("b");
+      // Check of the result for a corresponds to rexpInteger length
+      assertTrue(a.length() == rexpInteger.length());
+      assertTrue(b.length() == rexpDouble.length());
+      // Iterate and check values
+      for (int i = 0; i < rexpInteger.length(); i++) {
+        assertEquals(rexpInteger.asIntegers()[i], a.asIntegers()[i]);
+      }
+    } catch (ClassCastException exception) {
+      fail("Could not cast object to the required type.");
+    }
+  }
+
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
