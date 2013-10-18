@@ -301,7 +301,7 @@ public class RserveTest {
     }
     connection.assign("m2", REXP.createDoubleMatrix(matrix2));
     // Evaluate result
-    final REXP rexp = connection.eval("identical(m1 ,m2)");
+    final REXP rexp = connection.eval("identical(m1,m2)");
     assertNotNull(rexp);
     assertTrue(rexp.asInteger() == 1);
   }
