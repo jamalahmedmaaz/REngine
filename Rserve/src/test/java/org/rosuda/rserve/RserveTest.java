@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.rosuda.rengine.REXP;
 import org.rosuda.rengine.REXPDouble;
+import org.rosuda.rengine.REXPFactor;
 import org.rosuda.rengine.REXPGenericVector;
 import org.rosuda.rengine.REXPInteger;
 import org.rosuda.rengine.REXPList;
@@ -18,6 +19,7 @@ import org.rosuda.rengine.REXPMismatchException;
 import org.rosuda.rengine.REXPString;
 import org.rosuda.rengine.REngine;
 import org.rosuda.rengine.REngineException;
+import org.rosuda.rengine.RFactor;
 import org.rosuda.rengine.RList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,7 +174,7 @@ public class RserveTest {
   public void logicalsSupportTest() throws RserveException, REngineException, REXPMismatchException {
     final REXPLogical rexpLogical = new REXPLogical(new boolean[]{true, false, true});
     connection.assign("b", rexpLogical);
-    
+
     REXP rexp = connection.parseAndEval("b");
     assertNotNull(rexp);
     assertTrue(rexp.isLogical());
@@ -186,7 +188,7 @@ public class RserveTest {
       LOGGER.error(exception.getMessage());
       fail("Could not cast REXP to REPLogical.");
     }
-    
+
     rexp = connection.parseAndEval("c(TRUE,FALSE,NA)");
     assertNotNull(rexp);
     assertTrue(rexp.isLogical());
@@ -202,41 +204,62 @@ public class RserveTest {
     assertTrue(result2[1]);
     assertFalse(result2[2]);
     // Check result values of rexp.isNA()
-    boolean result3[] = ((REXPLogical) rexp).isNA(); 
+    boolean result3[] = ((REXPLogical) rexp).isNA();
     assertFalse(result3[0]);
     assertFalse(result3[1]);
     assertTrue(result3[2]);
   }
-  
+
   @Test
   public void s3ObjectFunctionalityTest() throws REngineException, REXPMismatchException {
     final REXPInteger rexpInteger = new REXPInteger(new int[]{0, 1, 2, 3});
     final REXPDouble rexpDouble = new REXPDouble(new double[]{0.5, 1.2, 2.3, 3.0});
-    
+
     final RList list = new RList();
     list.put("a", rexpInteger);
     list.put("b", rexpDouble);
-    
+
     connection.assign("z", REXP.createDataFrame(list));
-    
+
     final REXP rexp = connection.parseAndEval("z[2,2]");
     assertNotNull(rexp);
     assertTrue(rexp.length() == 1);
     assertTrue(rexp.asDouble() == 1.2);
   }
-  
-  @Test 
+
+  @Test
   public void dataFramePassThroughTest() throws REngineException, REXPMismatchException {
-    REXP dataFrame = connection.parseAndEval("{data(iris); iris}");
+    final REXP dataFrame = connection.parseAndEval("{data(iris); iris}");
     connection.assign("df", dataFrame);
-    
-    REXP rexp = connection.eval("identical(df, iris)");
+
+    final REXP rexp = connection.eval("identical(df, iris)");
     assertNotNull(rexp);
     assertTrue(rexp.isLogical());
     assertTrue(rexp.length() == 1);
-    assertTrue(((REXPLogical)rexp).isTRUE()[0]);
+    assertTrue(((REXPLogical) rexp).isTRUE()[0]);
   }
-  
+
+  @Test
+  public void factorSupportTest() throws REngineException, REXPMismatchException {
+    REXP factor = connection.parseAndEval("factor(paste('F',as.integer(runif(20)*5),sep=''))");
+    assertNotNull(factor);
+    assertTrue(factor.isFactor());
+
+    factor = connection.parseAndEval("factor('foo')");
+    assertNotNull(factor);
+    assertTrue(factor.isFactor());
+    assertEquals("foo", factor.asFactor().at(0));
+
+    connection.assign("f", new REXPFactor(new RFactor(new String[]{"foo", "bar", "foo", "foo", null, "bar"})));
+    factor = connection.parseAndEval("f");
+    assertNotNull(factor);
+    assertTrue(factor.isFactor());
+    
+    factor = connection.parseAndEval("as.factor(c(1,'a','b',1,'b'))");
+    assertNotNull(factor);
+    assertTrue(factor.isFactor());
+  }
+
   @After
   public void tearDownRserve() {
     //TODO: Implement code to shutdown Rserve on loca machine
